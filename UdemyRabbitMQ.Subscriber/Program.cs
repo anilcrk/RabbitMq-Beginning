@@ -17,7 +17,10 @@ namespace UdemyRabbitMQ.Subscriber
 
             var channel = connection.CreateModel(); // created channel
 
-            var randomQueueName = channel.QueueDeclare().QueueName; // random queue name
+            //var randomQueueName = channel.QueueDeclare().QueueName; // random queue name
+            var randomQueueName = "log-database-save-queue"; // random queue name
+
+            channel.QueueDeclare(randomQueueName, true, false, false);
             channel.QueueBind(randomQueueName, "logs-fanout", "", null);
 
             // açıklamar publisher içinde
