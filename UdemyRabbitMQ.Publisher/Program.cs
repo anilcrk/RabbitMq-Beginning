@@ -5,6 +5,14 @@ using System.Text;
 
 namespace UdemyRabbitMQ.Publisher
 {
+    public enum LogNames
+    {
+        Critical = 1,
+        Error = 2,
+        Warning = 3,
+        Info = 4
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -33,25 +41,43 @@ namespace UdemyRabbitMQ.Publisher
 
             //channel.QueueDeclare("hello-queue", true, false, false);
 
-            channel.ExchangeDeclare("logs-fanout", durable: true, type: ExchangeType.Fanout);
+            channel.ExchangeDeclare("logs-direct", durable: true, type: ExchangeType.Direct);
+
+            Enum.GetNames(typeof(LogNames)).ToList().ForEach(x =>
+            {
+                var routeKey = $"route-{x}";
+                var queueName = $"direct-queue-{x}";
+
+                // created queue
+                channel.QueueDeclare(queueName, true, false);
+
+                //binding
+                channel.QueueBind(queueName, "logs-direct", routeKey);
+            });
 
             Enumerable.Range(1, 50).ToList().ForEach(x =>
             {
+                LogNames log = (LogNames)new Random().Next(1, 5);
+
                 // RabbitMq mesajlar byte dizi olarak gider bu sebeple her türlü tipte veri gönderilir.
-                string message = $"Log {x}"; // created message
+                string message = $"Log-type : {log}"; // created message
 
                 var messageBody = Encoding.UTF8.GetBytes(message); //message Convert to byte array
+
+
+                // created root
+                var routeKey = $"route-{log}";
 
                 /*
                  Direk kuyruğa mesajı gönderdiğimiz için exchange string.empty gönderildi.
                  Default exchange kullanmak için routingKey property sine mutlaka kuyruk ismi verilir.
                  */
-                channel.BasicPublish("logs-fanout", "", null, messageBody); ;
+                channel.BasicPublish("logs-direct", routeKey, null, messageBody); ;
 
-                Console.Write($"Mesaj gönderildi. Mesaj : {message}");
+                Console.WriteLine($"Log gönderildi. Mesaj : {message}");
             });
 
-           
+
 
             Console.ReadLine();
         }

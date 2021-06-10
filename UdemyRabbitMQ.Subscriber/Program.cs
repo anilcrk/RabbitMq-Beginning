@@ -1,6 +1,7 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 
@@ -18,13 +19,8 @@ namespace UdemyRabbitMQ.Subscriber
             var channel = connection.CreateModel(); // created channel
 
             //var randomQueueName = channel.QueueDeclare().QueueName; // random queue name
-            var randomQueueName = "log-database-save-queue"; // random queue name
+            //var randomQueueName = "log-database-save-queue"; // random queue name
 
-            channel.QueueDeclare(randomQueueName, true, false, false);
-            channel.QueueBind(randomQueueName, "logs-fanout", "", null);
-
-            // açıklamar publisher içinde
-            //channel.QueueDeclare("hello-queue", true, false, false);
 
             channel.BasicQos(0, 1, false);
             var consumer = new EventingBasicConsumer(channel);
@@ -33,7 +29,10 @@ namespace UdemyRabbitMQ.Subscriber
              autoAck --> true verilirse rabbitmq subscriber'a bir mesaj gönderildiğinde mesaj başarılı veya başarısız da işlense siler.
              
              */
-            channel.BasicConsume(randomQueueName, false, consumer);
+
+            var queueName = "direct-queue-Critical";
+
+            channel.BasicConsume(queueName, false, consumer);
 
             Console.WriteLine("Loglar dinleniyor...");
 
@@ -45,6 +44,8 @@ namespace UdemyRabbitMQ.Subscriber
                 Thread.Sleep(1500);
 
                 Console.WriteLine($"Gelen Mesaj : {message}");
+
+                //File.AppendAllText("log.critical.txt", message+ "\n");
 
                 channel.BasicAck(e.DeliveryTag, false);
             };
