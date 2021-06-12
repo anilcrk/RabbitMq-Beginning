@@ -17,6 +17,7 @@ namespace UdemyRabbitMQ.Subscriber
             using var connection = factory.CreateConnection(); // open connection
 
             var channel = connection.CreateModel(); // created channel
+            channel.ExchangeDeclare("logs-topic", durable: true, type: ExchangeType.Topic);
 
             //var randomQueueName = channel.QueueDeclare().QueueName; // random queue name
             //var randomQueueName = "log-database-save-queue"; // random queue name
@@ -30,7 +31,11 @@ namespace UdemyRabbitMQ.Subscriber
              
              */
 
-            var queueName = "direct-queue-Critical";
+            var queueName = channel.QueueDeclare().QueueName;
+
+
+            var routeKey = "*.Error*";
+            channel.QueueBind(queueName, "logs-topic", routeKey);
 
             channel.BasicConsume(queueName, false, consumer);
 

@@ -24,55 +24,29 @@ namespace UdemyRabbitMQ.Publisher
 
             var channel = connection.CreateModel(); // created channel
 
-            /*
-             * durable --> false ise rabbitmq de oluşan kuyruklar memoryde tutulur.
-            true ise kuyruklar fiziksel olarak kayıt edilir restrat atılsa bile tutulur.
-            */
+            channel.ExchangeDeclare("logs-topic", durable: true, type: ExchangeType.Topic);
 
-            /*
-             excslusive true ise bu kuyruğa sadece bu kadal üzerinden bağlanılır.
-             farklı bir kanal üzerinden bağlanılacak için false yapıyoruz.
-             */
-
-            /*
-             autodelete : Bütün subcriber lar giderse kutruk silinir.
-             otomatik silinmemesi için false yapıyoruz.
-             */
-
-            //channel.QueueDeclare("hello-queue", true, false, false);
-
-            channel.ExchangeDeclare("logs-direct", durable: true, type: ExchangeType.Direct);
-
-            Enum.GetNames(typeof(LogNames)).ToList().ForEach(x =>
-            {
-                var routeKey = $"route-{x}";
-                var queueName = $"direct-queue-{x}";
-
-                // created queue
-                channel.QueueDeclare(queueName, true, false);
-
-                //binding
-                channel.QueueBind(queueName, "logs-direct", routeKey);
-            });
+            Random rnd = new Random();
 
             Enumerable.Range(1, 50).ToList().ForEach(x =>
             {
-                LogNames log = (LogNames)new Random().Next(1, 5);
 
                 // RabbitMq mesajlar byte dizi olarak gider bu sebeple her türlü tipte veri gönderilir.
-                string message = $"Log-type : {log}"; // created message
+                
+                LogNames log1 = (LogNames)rnd.Next(1, 5);
+                LogNames log2 = (LogNames)rnd.Next(1, 5);
+                LogNames log3 = (LogNames)rnd.Next(1, 5);
 
+                var routeKey = $"{log1}.{log2}.{log3}";
+                string message = $"Log-type : {log1}-{log2}-{log3}"; // created message
                 var messageBody = Encoding.UTF8.GetBytes(message); //message Convert to byte array
 
-
-                // created root
-                var routeKey = $"route-{log}";
 
                 /*
                  Direk kuyruğa mesajı gönderdiğimiz için exchange string.empty gönderildi.
                  Default exchange kullanmak için routingKey property sine mutlaka kuyruk ismi verilir.
                  */
-                channel.BasicPublish("logs-direct", routeKey, null, messageBody); ;
+                channel.BasicPublish("logs-topic", routeKey, null, messageBody); ;
 
                 Console.WriteLine($"Log gönderildi. Mesaj : {message}");
             });
