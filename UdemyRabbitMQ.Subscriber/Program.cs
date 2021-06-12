@@ -1,6 +1,7 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -17,25 +18,25 @@ namespace UdemyRabbitMQ.Subscriber
             using var connection = factory.CreateConnection(); // open connection
 
             var channel = connection.CreateModel(); // created channel
-            channel.ExchangeDeclare("logs-topic", durable: true, type: ExchangeType.Topic);
-
-            //var randomQueueName = channel.QueueDeclare().QueueName; // random queue name
-            //var randomQueueName = "log-database-save-queue"; // random queue name
-
+            channel.ExchangeDeclare("header-exchange", durable: true, type: ExchangeType.Headers);
 
             channel.BasicQos(0, 1, false);
             var consumer = new EventingBasicConsumer(channel);
 
-            /*
-             autoAck --> true verilirse rabbitmq subscriber'a bir mesaj gönderildiğinde mesaj başarılı veya başarısız da işlense siler.
-             
-             */
-
             var queueName = channel.QueueDeclare().QueueName;
 
+            Dictionary<string, object> headers = new Dictionary<string, object>();
+            headers.Add("format", "pdf");
+            headers.Add("shape", "a4");
 
-            var routeKey = "*.Error*";
-            channel.QueueBind(queueName, "logs-topic", routeKey);
+            /*
+             x-match --> 
+             all ise --> mutlaka bütün keyler eşit oladuğu koşulda kuyruğa eklenicek.             
+             */
+            headers.Add("x-match", "all");
+
+
+            channel.QueueBind(queueName, "header-exchange", string.Empty, headers);
 
             channel.BasicConsume(queueName, false, consumer);
 
@@ -49,8 +50,6 @@ namespace UdemyRabbitMQ.Subscriber
                 Thread.Sleep(1500);
 
                 Console.WriteLine($"Gelen Mesaj : {message}");
-
-                //File.AppendAllText("log.critical.txt", message+ "\n");
 
                 channel.BasicAck(e.DeliveryTag, false);
             };
