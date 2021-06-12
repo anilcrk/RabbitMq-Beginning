@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
+using UdemyRabbitMQ.Shared;
 
 namespace UdemyRabbitMQ.Subscriber
 {
@@ -47,9 +49,11 @@ namespace UdemyRabbitMQ.Subscriber
             {
                 var message = Encoding.UTF8.GetString(e.Body.ToArray());
 
+                Product product = JsonSerializer.Deserialize<Product>(message);
+
                 Thread.Sleep(1500);
 
-                Console.WriteLine($"Gelen Mesaj : {message}");
+                Console.WriteLine($"Gelen Mesaj : {product.Id}-{product.Name}");
 
                 channel.BasicAck(e.DeliveryTag, false);
             };

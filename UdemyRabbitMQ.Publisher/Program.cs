@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using UdemyRabbitMQ.Shared;
 
 namespace UdemyRabbitMQ.Publisher
 {
@@ -35,9 +37,20 @@ namespace UdemyRabbitMQ.Publisher
             //created property
             var propoerties = channel.CreateBasicProperties();
             propoerties.Headers = headers;
-            propoerties.Persistent = true // mesajlar kalıcı hale gelir.
+            propoerties.Persistent = true; // mesajlar kalıcı hale gelir.
 
-            channel.BasicPublish("header-exchange", string.Empty, propoerties, Encoding.UTF8.GetBytes("header mesajımm"));
+
+                var product = new Product
+                {
+                    Id = 1,
+                    Stock = 2,
+                    Name = "Test Product",
+                    Price = 1500
+                };
+
+            var productJsonString = JsonSerializer.Serialize(product);
+
+            channel.BasicPublish("header-exchange", string.Empty, propoerties, Encoding.UTF8.GetBytes(productJsonString));
 
 
 
