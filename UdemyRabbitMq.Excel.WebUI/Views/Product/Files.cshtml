@@ -1,0 +1,38 @@
+﻿@model List<UserFile>
+
+@{
+    ViewData["Title"] = "Files";
+}
+
+<h1>Files</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>
+                File Name
+            </th>
+            <th>
+                Created Date
+            </th>
+            <th>
+                File Status
+            </th>
+            <th>
+                Dowloand
+            </th>
+        </tr>
+    </thead>
+    @foreach (var item in Model)
+	{
+		 <tr>
+            <td>@item.FileName</td>
+            <td>@item.CreatedDate</td>
+            <td>@item.FileStatus</td>
+            <td>
+                <a href="~/Files/@item.FilePath" class="btn btn-primary @(item.FileStatus == FileStatus.Creating ? "disabled": "" )">Dowloand</a>
+            </td>
+         </tr>
+	}
+</table>
+
