@@ -4,6 +4,31 @@
     ViewData["Title"] = "Files";
 }
 
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+
+            var wasStartCreatşngExcel = '@TempData["StartCreatingExcel"]';
+
+            if (HashChangeEvent) {
+
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Excel oluşturuluyor... Bittiğinde bildiri alıcaksınız.',
+                    showConfirmButton: false,
+                    timer :2500
+
+                })
+
+
+            }
+           
+        });
+    </script>
+}
+
 <h1>Files</h1>
 
 <table class="table table-striped">

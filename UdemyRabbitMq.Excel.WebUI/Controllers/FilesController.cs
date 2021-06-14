@@ -5,7 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using UdemyRabbitMq.Excel.WebUI.Hubs;
 using UdemyRabbitMq.Excel.WebUI.Models;
 
 namespace UdemyRabbitMq.Excel.WebUI.Controllers
@@ -16,10 +18,12 @@ namespace UdemyRabbitMq.Excel.WebUI.Controllers
     {
 
         private readonly AppDbContext _context;
+        private readonly IHubContext<MyHub> _hubContext;
 
-        public FilesController(AppDbContext context)
+        public FilesController(AppDbContext context, IHubContext<MyHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         [HttpPost]
@@ -42,7 +46,8 @@ namespace UdemyRabbitMq.Excel.WebUI.Controllers
 
             await _context.SaveChangesAsync();
 
-            //SinalR ile notification oluşturulacak.
+            await _hubContext.Clients.User(userFile.UserId).SendAsync("CompletedFile");
+            
 
             return Ok();
 
